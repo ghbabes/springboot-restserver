@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.bnguimbo</groupId>
+	<artifactId>springboot-restserver</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>war</packaging>
+
+	<name>springboot-restserver</name>
+	<description>Demo project for Spring Boot</description>
+
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.2.5.RELEASE</version>
+		<relativePath />
+	</parent>
+
+	<properties>
+		<start-class>com.bnguimbo.restclient.com.bnguimbo.springbootrestserver.SpringbootRestserverApplication</start-class>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<java.version>1.8</java.version>
+		<cargo.version>1.7.10</cargo.version>
+		<tomcat.version>9.0.24</tomcat.version>
+	</properties>
+	<repositories>
+		<repository>
+			<id>central maven repo</id>
+			<name>central maven repo https</name>
+			<url>https://repo.maven.apache.org/maven2</url>
+		</repository>
+	</repositories>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<!-- Dépendances pour Spring AOP and AspectJ -->
+		<dependency>
+    		<groupId>org.springframework.boot</groupId>
+    		<artifactId>spring-boot-starter-aop</artifactId>
+    	</dependency>
+		<!-- Permet l'utilisation des collections Apache -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-collections4</artifactId>
+			<version>4.0</version>
+		</dependency>
+
+		<!-- Base de données utilisée par l'application -->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
+		<!-- Dépendances pour les tests uniquement -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			 <scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.jayway.jsonpath</groupId>
+			<artifactId>json-path</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<finalName>springboot-restserver</finalName>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+			</resource>
+		</resources>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<exclude>**/*IntegrationTest.java</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+	<profiles>
+		<profile>
+			<id>integrationTest</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+			<properties>
+				<skip.surefire.tests>true</skip.surefire.tests>
+				<skip.failsafe.tests>false</skip.failsafe.tests>
+			</properties>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.cargo</groupId>
+						<artifactId>cargo-maven2-plugin</artifactId>
+						<version>${cargo.version}</version>
+						<configuration>
+							<wait>false</wait>
+							<container>
+								<containerId>tomcat9x</containerId>
+								<type>embedded</type>
+							</container>
+							<configuration>
+								<properties>
+									<cargo.servlet.port>8484</cargo.servlet.port>
+									<cargo.tomcat.ajp.port>8090</cargo.tomcat.ajp.port>
+								</properties>
+							</configuration>
+						</configuration>
+
+						<executions>
+							<execution>
+								<id>start-server</id>
+								<phase>pre-integration-test</phase>
+								<goals>
+									<goal>start</goal>
+								</goals>
+							</execution>
+							<execution>
+								<id>stop-server</id>
+								<phase>post-integration-test</phase>
+								<goals>
+									<goal>stop</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<artifactId>maven-failsafe-plugin</artifactId>
+						<executions>
+							<execution>
+								<phase>integration-test</phase>
+								<goals>
+									<goal>integration-test</goal>
+									<goal>verify</goal>
+								</goals>
+							</execution>
+						</executions>
+						<configuration>
+							<excludes>
+								<exclude>none</exclude>
+							</excludes>
+							<includes>
+								<include>**/*IntegrationTest.java</include>
+							</includes>
+							<skipTests>${skip.failsafe.tests}</skipTests>
+						</configuration>
+					</plugin>
+					<plugin>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<configuration>
+							<skipTests>${skip.surefire.tests}</skipTests>
+						</configuration>
+					</plugin>
+
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>springbootServerDeploy</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.cargo</groupId>
+						<artifactId>cargo-maven2-plugin</artifactId>
+						<version>${cargo.version}</version>
+						<configuration>
+							<container>
+								<containerId>tomcat9x</containerId>
+								<type>embedded</type>
+							</container>
+							<configuration>
+								<home>${project.build.directory}/tomcat9x</home>
+								<properties>
+									<cargo.servlet.port>8080</cargo.servlet.port>
+								</properties>
+							</configuration>
+							<deployables>
+								<deployable>
+									<groupId>com.bnguimbo</groupId>
+									<artifactId>springboot-restserver</artifactId>
+									<type>war</type>
+									<pingURL>http://localhost:8080/springboot-restserver</pingURL>
+								</deployable>
+							</deployables>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+</project>
